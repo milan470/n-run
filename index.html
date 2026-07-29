@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N-RUN! — Pick your hero · Grab your weapon · Build your worlds</title>
+<meta name="description" content="N-RUN! is a free pixel-art runner game by Naiyan Shah (age 8). Seven heroes, ten weapons, monsters to stomp, and a level editor to build your own worlds and share them with friends.">
+<meta property="og:title" content="N-RUN!">
+<meta property="og:description" content="Pick your hero · Grab your weapon · Build your worlds. A free game by Naiyan Shah, 8 years old.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0e0e1a; --panel:#191930; --border:#565688;
+    --yellow:#ffd428; --green:#4fbc3c; --bright:#7ade5c;
+    --blue:#8ad4ff; --pink:#f25ca2;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--navy); color:#fff;
+    font-family:'Press Start 2P','Courier New',monospace;
+    overflow-x:hidden;
+  }
+  .stars{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  main{ position:relative; z-index:1; }
+  section{ max-width:1000px; margin:0 auto; padding:52px 20px; }
+
+  .hero{ text-align:center; padding-top:68px; }
+  .logo{
+    font-size:clamp(38px,9vw,84px); color:var(--yellow);
+    text-shadow:4px 4px 0 #1a2b5e, 8px 8px 0 rgba(0,0,0,.35);
+    letter-spacing:2px; line-height:1.1;
+  }
+  .tagline{ margin-top:22px; font-size:clamp(8px,2.1vw,13px); color:var(--blue); line-height:1.9; }
+  .cta{
+    display:inline-block; margin-top:32px; padding:22px 54px;
+    background:var(--green); color:#fff; text-decoration:none;
+    font-size:clamp(14px,3vw,22px);
+    border:4px solid var(--bright); border-radius:14px;
+    box-shadow:0 8px 0 #1e5e1e; transition:transform .08s, box-shadow .08s;
+  }
+  .cta:active,.cta:hover{ transform:translateY(4px); box-shadow:0 4px 0 #1e5e1e; }
+  .free{ margin-top:16px; font-size:8px; color:#9aa; line-height:1.9; }
+
+  .frame{
+    width:100%; aspect-ratio:16/9; display:block;
+    border:5px solid var(--border); border-radius:14px;
+    background:#000; pointer-events:none;
+  }
+  .hero .frame{ margin-top:40px; max-width:820px; margin-left:auto; margin-right:auto; }
+  .livehint{ font-size:7px; color:#667; margin-top:10px; letter-spacing:1px; }
+
+  h2{ text-align:center; color:var(--yellow); font-size:clamp(14px,3.4vw,24px); margin-bottom:10px; line-height:1.5; }
+  .sub{ text-align:center; font-size:clamp(8px,2vw,11px); color:#aab; line-height:2; margin-bottom:34px; }
+
+  .chars{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; }
+  .char{
+    background:var(--panel); border:3px solid var(--border); border-radius:12px;
+    padding:18px 8px; text-align:center; transition:transform .1s, border-color .1s;
+  }
+  .char:hover{ transform:translateY(-6px); border-color:var(--bright); }
+  .char canvas{ width:72px; height:84px; image-rendering:pixelated; }
+  .char .nm{ font-size:9px; margin-top:12px; line-height:1.6; }
+  .char .pw{ font-size:7px; color:var(--yellow); margin-top:8px; line-height:1.7; }
+
+  .weps{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+  .wep{
+    background:var(--panel); border:3px solid var(--border); border-radius:12px;
+    padding:14px 8px; text-align:center; transition:border-color .1s;
+  }
+  .wep:hover{ border-color:var(--blue); }
+  .wep canvas{ width:56px; height:56px; }
+  .wep .nm{ font-size:8px; margin-top:8px; line-height:1.7; }
+  .wep .ds{ font-size:7px; color:var(--blue); margin-top:6px; line-height:1.7; }
+
+  .feat{ display:flex; gap:28px; align-items:center; flex-wrap:wrap; margin-top:24px; }
+  .feat > *{ flex:1 1 320px; }
+  .feat h3{ color:var(--bright); font-size:clamp(11px,2.6vw,16px); line-height:1.6; margin-bottom:14px; }
+  .feat p{ font-size:clamp(8px,2vw,10px); line-height:2.2; color:#ccd; }
+  .feat.flip{ flex-direction:row-reverse; }
+
+  .worlds{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+  .world{
+    height:130px; border:4px solid var(--border); border-radius:12px;
+    display:flex; align-items:flex-end; justify-content:center;
+    padding-bottom:14px; font-size:9px; letter-spacing:1px;
+    text-shadow:2px 2px 0 rgba(0,0,0,.6);
+  }
+  .w-day{ background:linear-gradient(#5aa6e8,#a8dcf0 70%, #79c95e 70%); }
+  .w-sunset{ background:linear-gradient(#ff7a3c,#ffd9a0 70%, #4e8b3a 70%); }
+  .w-night{ background:linear-gradient(#0b1030,#28336e 70%, #1d4d2e 70%); }
+  .w-space{ background:linear-gradient(#07021a,#341a58); }
+
+  .bigcta{ text-align:center; padding-bottom:76px; }
+  footer{
+    border-top:3px solid var(--panel); text-align:center;
+    padding:34px 20px 46px; font-size:8px; color:#889; line-height:2.4;
+  }
+  footer .credit{ color:var(--yellow); font-size:10px; }
+</style>
+</head>
+<body>
+<canvas class="stars" id="stars"></canvas>
+<main>
+
+  <section class="hero">
+    <h1 class="logo">N-RUN!</h1>
+    <p class="tagline">PICK YOUR HERO · GRAB YOUR WEAPON · BUILD YOUR WORLDS</p>
+    <a class="cta" href="play/">▶ PLAY NOW</a>
+    <p class="free">100% free · no downloads · works on phones, tablets &amp; computers</p>
+    <iframe class="frame" src="play/" title="N-RUN! live title screen" scrolling="no"></iframe>
+    <p class="livehint">▲ THAT'S THE REAL GAME, RUNNING LIVE</p>
+  </section>
+
+  <section>
+    <h2>CHOOSE YOUR HERO</h2>
+    <p class="sub">Seven heroes, each with their own special power.</p>
+    <div class="chars" id="chars"></div>
+  </section>
+
+  <section>
+    <h2>TEN WEAPONS</h2>
+    <p class="sub">Any weapon works with any hero. The sword never runs out — everything else needs ammo crates!</p>
+    <div class="weps" id="weps"></div>
+  </section>
+
+  <section>
+    <h2>MONSTERS EVERYWHERE</h2>
+    <p class="sub">Watch the game play itself — then see if you can do better.</p>
+    <div class="feat">
+      <iframe class="frame" src="play/?preview=play" title="N-RUN! gameplay preview" scrolling="no" loading="lazy"></iframe>
+      <div>
+        <h3>STOMP THEM. BLAST THEM.</h3>
+        <p>Flying cartridge chasers hunt you down diagonally. Spiky bouncers ricochet off the walls. Laser turrets fire in four directions at once. Jump on their heads, or grab an ammo crate and fight back!</p>
+      </div>
+    </div>
+    <div class="feat flip">
+      <iframe class="frame" src="play/?preview=editor" title="N-RUN! level editor preview" scrolling="no" loading="lazy"></iframe>
+      <div>
+        <h3>BUILD YOUR OWN WORLDS</h3>
+        <p>The full level editor is inside the game. Paint ground, bricks, coins, spikes, monsters, lasers, checkpoints and goal flags with your finger. Test your course instantly — then send it to a friend with a secret course code!</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>FOUR WORLDS TO RUN THROUGH</h2>
+    <p class="sub">Day, sunset, night and outer space — pick the backdrop for every course you build.</p>
+    <div class="worlds">
+      <div class="world w-day">DAY</div>
+      <div class="world w-sunset">SUNSET</div>
+      <div class="world w-night">NIGHT</div>
+      <div class="world w-space">SPACE</div>
+    </div>
+  </section>
+
+  <section class="bigcta">
+    <h2>READY TO RUN?</h2>
+    <a class="cta" href="play/">▶ PLAY N-RUN! FREE</a>
+    <p class="free">Earn all 3 stars on every course... if you can.</p>
+  </section>
+
+</main>
+<footer>
+  <p class="credit">Created by Naiyan Shah, 8 Years Old · Est. 2026</p>
+  <p>Made with imagination, paper and felt-tip pens first.</p>
+</footer>
+<script>
+/* ---- starfield ---- */
+const sc = document.getElementById('stars'), sg = sc.getContext('2d');
+let stars = [];
+function size(){
+  sc.width = innerWidth; sc.height = innerHeight;
+  stars = Array.from({length:90}, () => ({ x:Math.random()*sc.width, y:Math.random()*sc.height, s:Math.random()*2+1, p:Math.random()*Math.PI*2 }));
+}
+addEventListener('resize', size); size();
+(function tick(t){
+  sg.clearRect(0,0,sc.width,sc.height);
+  for (const st of stars){
+    sg.fillStyle = 'rgba(255,255,255,'+(0.25+0.55*Math.abs(Math.sin(t/900+st.p)))+')';
+    sg.fillRect(st.x, st.y, st.s, st.s);
+  }
+  requestAnimationFrame(tick);
+})(0);
+
+/* ---- character sprites, drawn exactly like in the game ---- */
+function px(g,x,y,w,h,c){ g.fillStyle=c; g.fillRect(x,y,w||1,h||1); }
+function buildChar(o){
+  const c = document.createElement('canvas'); c.width = 12; c.height = 14;
+  const g = c.getContext('2d');
+  const skin=o.skin, hair=o.hair, shirt=o.shirt, pants=o.pants, shoe=o.shoe||'#3a2417';
+  px(g,2,0,8,1,hair); px(g,1,1,10,2,hair);
+  if (o.cap) px(g,1,2,11,1,hair);
+  px(g,2,3,8,4,skin);
+  if (!o.cap){ px(g,1,3,1,2,hair); px(g,10,3,1,2,hair); }
+  if (o.headband) px(g,2,3,8,1,o.headband);
+  px(g,4,4,1,1,'#111'); px(g,8,4,1,1,'#111');
+  if (o.glasses){ px(g,3,4,3,1,'rgba(255,255,255,0.55)'); px(g,7,4,3,1,'rgba(255,255,255,0.55)'); px(g,3,3,3,1,'#111'); px(g,7,3,3,1,'#111'); px(g,6,4,1,1,'#111'); px(g,4,4,1,1,'#111'); px(g,8,4,1,1,'#111'); }
+  if (o.moustache) px(g,3,6,6,1,'#1c1210');
+  px(g,2,7,8,4,shirt);
+  if (o.bib){ px(g,4,7,4,3,'#fff'); px(g,5,8,2,1,'#e33'); }
+  if (o.belly) px(g,4,8,4,3,o.belly);
+  px(g,1,7,1,3,o.sleeves||shirt); px(g,10,7,1,3,o.sleeves||shirt);
+  px(g,1,10,1,1,skin); px(g,10,10,1,1,skin);
+  px(g,2,11,8,2,pants); px(g,5,11,2,2,pants);
+  px(g,5,12,2,1,'rgba(0,0,0,0.25)');
+  px(g,1,13,4,1,shoe); px(g,7,13,4,1,shoe);
+  if (o.bow){ px(g,0,0,2,2,o.bow); px(g,2,1,1,1,o.bow); }
+  if (o.horns){ px(g,1,0,1,2,'#fff'); px(g,10,0,1,2,'#fff'); }
+  if (o.shellSpikes){ px(g,0,7,1,1,'#fff'); px(g,0,9,1,1,'#fff'); px(g,11,7,1,1,'#fff'); px(g,11,9,1,1,'#fff'); }
+  return c;
+}
+const CHARS = [
+  ['JERRY LAWSON','TRIPLE JUMP!',{skin:'#8d5524',hair:'#181410',shirt:'#e07b28',pants:'#4a3220',glasses:true,moustache:true}],
+  ['MARIO','HIGH JUMPER',{skin:'#f2c29b',hair:'#d61e1e',shirt:'#2b58d8',pants:'#2b58d8',sleeves:'#d61e1e',cap:true,moustache:true}],
+  ['BOWSER','4 HEARTS · TOUGH',{skin:'#5ba829',hair:'#e0521c',shirt:'#5ba829',belly:'#f5deb0',pants:'#3d7a1a',horns:true,shellSpikes:true}],
+  ['BOWSER JUNIOR','MEGA BOUNCE STOMP',{skin:'#8fd14f',hair:'#ffb52e',shirt:'#8fd14f',bib:true,pants:'#5ba829',horns:true}],
+  ['BOB','COINS COUNT ×2',{skin:'#f2c29b',hair:'#6b4a2b',shirt:'#3fa7d6',pants:'#35526b'}],
+  ['BOBELINA','FLOATY FALLS',{skin:'#f6d0b8',hair:'#f7d038',shirt:'#f25ca2',pants:'#c23a80',bow:'#ff8ac2'}],
+  ['KERATI BOY','POWER AIR-KICK',{skin:'#f2c29b',hair:'#181410',shirt:'#f4f4f0',pants:'#f4f4f0',headband:'#e02222',shoe:'#f4f4f0'}],
+];
+const charWrap = document.getElementById('chars');
+for (const [name, power, def] of CHARS){
+  const spr = buildChar(def);
+  const card = document.createElement('div'); card.className = 'char';
+  const big = document.createElement('canvas'); big.width = 12; big.height = 14;
+  big.getContext('2d').drawImage(spr, 0, 0);
+  card.appendChild(big);
+  const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = name;
+  const pw = document.createElement('div'); pw.className = 'pw'; pw.textContent = power;
+  card.appendChild(nm); card.appendChild(pw);
+  charWrap.appendChild(card);
+}
+
+/* ---- weapon icons, drawn like in the game ---- */
+function star(g,x,y,r){
+  g.beginPath();
+  for (let i=0;i<10;i++){
+    const a=-Math.PI/2+i*Math.PI/5, rad=i%2===0?r:r*0.45;
+    const X=x+Math.cos(a)*rad, Y=y+Math.sin(a)*rad;
+    i===0?g.moveTo(X,Y):g.lineTo(X,Y);
+  }
+  g.closePath(); g.fillStyle='#ffd428'; g.fill(); g.strokeStyle='#b8860b'; g.lineWidth=2; g.stroke();
+}
+function bubble(g,x,y,r){
+  g.strokeStyle='rgba(140,220,255,0.9)'; g.lineWidth=2.5;
+  g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.stroke();
+  g.fillStyle='rgba(140,220,255,0.18)'; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill();
+  g.fillStyle='rgba(255,255,255,0.8)'; g.beginPath(); g.arc(x-r*0.35,y-r*0.4,r*0.18,0,Math.PI*2); g.fill();
+}
+function wepIcon(id){
+  const c=document.createElement('canvas'); c.width=56; c.height=56;
+  const g=c.getContext('2d'); g.translate(28,28); g.scale(1.5,1.5);
+  if (id==='cart'){ g.fillStyle='#4a4a58'; g.fillRect(-10,-8,20,16); g.fillStyle='#e07b28'; g.fillRect(-6,-4,12,8); }
+  else if (id==='star'){ star(g,0,0,13); }
+  else if (id==='fire'){ g.fillStyle='#ff8a3c'; g.beginPath(); g.arc(0,0,9,0,Math.PI*2); g.fill(); g.fillStyle='#ffd428'; g.beginPath(); g.arc(0,0,5,0,Math.PI*2); g.fill(); }
+  else if (id==='shield'){ g.strokeStyle='#8ad4ff'; g.lineWidth=4; g.beginPath(); g.arc(-6,0,13,-Math.PI/2.4,Math.PI/2.4); g.stroke(); }
+  else if (id==='bub'){ bubble(g,0,0,10); }
+  else if (id==='heart'){ g.fillStyle='#ff5c9e'; g.beginPath(); g.arc(-4,-3,5,0,Math.PI*2); g.arc(4,-3,5,0,Math.PI*2); g.moveTo(-9,-1); g.lineTo(0,10); g.lineTo(9,-1); g.fill(); }
+  else if (id==='wave'){ g.strokeStyle='#fff'; g.lineWidth=4; g.beginPath(); g.arc(-6,0,12,-Math.PI/2.6,Math.PI/2.6); g.stroke(); g.strokeStyle='#8ad4ff'; g.lineWidth=2; g.beginPath(); g.arc(-11,0,10,-Math.PI/2.8,Math.PI/2.8); g.stroke(); }
+  else if (id==='sword'){ g.rotate(-Math.PI/4); g.fillStyle='#d8dce8'; g.fillRect(-2.5,-16,5,22); g.fillStyle='#fff'; g.fillRect(-0.5,-16,1.5,22); g.fillStyle='#8a6d2e'; g.fillRect(-6,6,12,3.5); g.fillStyle='#5e4a1e'; g.fillRect(-1.5,9,3,7); }
+  else if (id==='trident'){ g.rotate(-Math.PI/4); g.fillStyle='#e0c45c'; g.fillRect(-1.5,-6,3,22); g.fillStyle='#f7d878'; g.fillRect(-7,-8,14,3); g.fillRect(-7,-15,3,8); g.fillRect(-1.5,-17,3,10); g.fillRect(4,-15,3,8); }
+  else if (id==='gun'){ g.fillStyle='#4a4a58'; g.fillRect(-11,-5,20,8); g.fillStyle='#6b6b80'; g.fillRect(5,-3,7,4); g.fillStyle='#3a3a46'; g.fillRect(-9,3,5,8); g.fillStyle='#ffd428'; g.fillRect(12,-2,3,2); }
+  return c;
+}
+const WEPS = [
+  ['cart','CARTRIDGE BLASTER','spinning cartridges'],
+  ['star','STAR BOOMERANG','flies back, grabs coins'],
+  ['fire','FIRE BREATH','bouncing fireballs'],
+  ['shield','MIRROR SHIELD','reflects lasers!'],
+  ['bub','BUBBLE TRAP','traps monsters'],
+  ['heart','LOVE HEARTS','monsters → coins'],
+  ['wave','SMASH WAVE','smashes bricks!'],
+  ['sword','SWORD','free swings, close up'],
+  ['trident','TRIDENT','pierces everything'],
+  ['gun','BLASTER GUN','fast zap pellets'],
+];
+const wepWrap = document.getElementById('weps');
+for (const [id, name, desc] of WEPS){
+  const card = document.createElement('div'); card.className = 'wep';
+  card.appendChild(wepIcon(id));
+  const nm = document.createElement('div'); nm.className='nm'; nm.textContent = name;
+  const ds = document.createElement('div'); ds.className='ds'; ds.textContent = desc;
+  card.appendChild(nm); card.appendChild(ds);
+  wepWrap.appendChild(card);
+}
+</script>
+</body>
+</html>
