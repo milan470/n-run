@@ -479,10 +479,48 @@ function makeModal(title, sub){
   };
   return { wrap, ta, btn, close: () => wrap.remove() };
 }
+function shareURL(code){
+  return location.origin + location.pathname + "#c=" + encodeURIComponent(code);
+}
+let qrLibState = 0; // 0 not loaded, 1 loading, 2 ready, -1 failed
+function withQRLib(cb){
+  if (window.QRCode){ qrLibState = 2; cb(true); return; }
+  if (qrLibState === -1){ cb(false); return; }
+  const done = ok => { qrLibState = ok ? 2 : -1; cb(ok); };
+  const s = document.createElement("script");
+  s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+  s.onload = () => done(!!window.QRCode);
+  s.onerror = () => done(false);
+  document.head.appendChild(s);
+}
 function showShare(c){
   const code = courseCode(c);
-  const m = makeModal("SHARE: " + c.name, "Send this code to family & friends — they tap ENTER CODE and paste it in.");
+  const url = shareURL(code);
+  const m = makeModal("SHARE: " + c.name, "Friends scan the QR with a phone camera - your course opens on their screen. Or send the code/link.");
   m.ta.value = code; m.ta.readOnly = true;
+  m.ta.style.height = "64px";
+  const qrHolder = document.createElement("div");
+  qrHolder.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:12px;";
+  m.ta.parentNode.insertBefore(qrHolder, m.ta.nextSibling);
+  withQRLib(ok => {
+    if (ok){
+      try{
+        const box = document.createElement("div");
+        box.style.cssText = "background:#fff;padding:10px;border-radius:10px;";
+        qrHolder.appendChild(box);
+        new QRCode(box, { text:url, width:170, height:170, colorDark:"#12122a", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.L });
+        const cap = document.createElement("div");
+        cap.textContent = "SCAN TO PLAY " + c.name;
+        cap.style.cssText = "font-size:12px;font-weight:bold;color:#ffd428;letter-spacing:1px;";
+        qrHolder.appendChild(cap);
+      }catch(e){ qrHolder.remove(); }
+    }
+  });
+  const copyLink = m.btn("COPY LINK", "#2b58d8");
+  copyLink.onclick = () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
+    copyLink.textContent = "LINK COPIED!";
+  };
   const copy = m.btn("COPY CODE", "#2e8b2e");
   copy.onclick = () => {
     m.ta.select(); m.ta.setSelectionRange(0, 99999);
@@ -1911,6 +1949,20 @@ function loop(ts){
   }
 }
 loadData();
+
+/* ---------- QR / link course import (#c=CODE in the URL) ---------- */
+(function(){
+  const mh = location.hash.match(/^#c=(.+)$/);
+  if (!mh) return;
+  let code = "";
+  try{ code = decodeURIComponent(mh[1]); }catch(e){ code = mh[1]; }
+  try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){}
+  const dup = courses.find(c => c.custom && courseCode(c) === code.trim());
+  if (dup){ toast = "COURSE FROM A FRIEND: " + dup.name; toastT = 200; state = "COURSES"; return; }
+  const c = importCode(code);
+  if (c){ toast = "A FRIEND SENT YOU: " + c.name + "!"; toastT = 220; state = "COURSES"; }
+})();
+
 
 /* ---------- preview modes (used by the website for live embeds) ---------- */
 const PREVIEW = new URLSearchParams(location.search).get("preview");
