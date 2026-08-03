@@ -6,7 +6,9 @@
 <title>N-Run</title>
 <style>
   html,body{margin:0;padding:0;background:#0e0e1a;height:100%;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;}
-  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
+  #wrap{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  #saga{font-family:monospace;font-size:11px;font-weight:bold;letter-spacing:1px;text-decoration:none;
+    color:#ffd428;opacity:0.8;padding:5px 14px;line-height:1;display:block;}
   canvas{background:#000;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;}
 </style>
 </head>
@@ -29,8 +31,9 @@ const W = 960, H = 540;
 const TILE = 36, ROWS = 15;
 
 /* ---------- resize to fit screen ---------- */
+const BADGE_H = new URLSearchParams(location.search).get("preview") ? 0 : 24;
 function fit(){
-  const ww = window.innerWidth, wh = window.innerHeight;
+  const ww = window.innerWidth, wh = window.innerHeight - BADGE_H;
   const s = Math.min(ww / W, wh / H);
   cv.style.width  = (W * s) + "px";
   cv.style.height = (H * s) + "px";
@@ -1965,21 +1968,15 @@ loadData();
 
 
 
-/* ---------- made-with badge (hidden during play/edit + previews) ---------- */
+/* ---------- made-with logo - its own strip BELOW the gameplay area ---------- */
 (function(){
-  if (window.__previewMode) return;
+  if (BADGE_H === 0 || window.__previewMode) return;
   const saga = document.createElement("a");
+  saga.id = "saga";
   saga.href = "https://milan470.github.io/sketchagame/";
   saga.target = "_blank"; saga.rel = "noopener";
-  saga.textContent = "MADE WITH SKETCH\u00b7A\u00b7GAME \u2014 make your own \u2192";
-  saga.style.cssText = "position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:40;" +
-    "font-family:monospace;font-size:11px;font-weight:bold;letter-spacing:1px;text-decoration:none;" +
-    "color:#ffd428;background:rgba(10,10,26,0.75);border:1.5px solid #565688;border-radius:99px;" +
-    "padding:6px 14px;opacity:0.85;";
-  document.body.appendChild(saga);
-  setInterval(() => {
-    saga.style.display = (state === "PLAY" || state === "EDIT") ? "none" : "block";
-  }, 400);
+  saga.textContent = "MADE WITH SKETCH\u00b7A\u00b7GAME";
+  document.getElementById("wrap").appendChild(saga);
 })();
 
 /* ---------- preview modes (used by the website for live embeds) ---------- */
